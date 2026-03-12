@@ -23,6 +23,7 @@ unique_collection_split = collection_split.copy().drop_duplicates(
 collection_loader = DataFrameLoader(unique_collection_split, page_content_column="text")
 collection_docs = collection_loader.load()
 
+# splitting documents into chucks of size of 1000 tokens and overlap of 100 tokens
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=100,
