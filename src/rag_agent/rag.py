@@ -5,7 +5,7 @@ from langchain_chroma import Chroma
 from langchain_community.embeddings import Model2vecEmbeddings
 
 
-from ragtype import Message, RAGState
+from .ragtype import Message, RAGState
 
 # chat model
 from langchain.chat_models import init_chat_model
@@ -13,7 +13,7 @@ from langgraph.graph import StateGraph, START, END
 
 from langgraph.checkpoint.memory import MemorySaver
 
-from retriever import load_vector_store
+from .retriever import load_vector_store
 
 # %%
 #===============================

@@ -1,10 +1,15 @@
 # file: batch_generate.py
 # Description: This script runs batch generation of answers for questions in a data file using a RAG workflow.
 
-from rag import load_graph
+import sys
+from pathlib import Path
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from rag_agent.rag import load_graph
 import uuid
 import json
-from pathlib import Path
 from tqdm import tqdm
 import os
 import argparse

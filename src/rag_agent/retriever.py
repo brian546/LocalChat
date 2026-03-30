@@ -3,12 +3,18 @@ import pandas as pd
 from langchain_chroma import Chroma
 from langchain_community.embeddings import Model2vecEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
-from custom_bm25 import CustomBM25Retriever as BM25Retriever
 from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 def load_sparse():
+    try:
+        from .custom_bm25 import CustomBM25Retriever as BM25Retriever
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "Sparse retrieval requires the 'rank-bm25' package. Install it to use embed='sparse'."
+        ) from exc
+
     collection_split = pd.read_json(
         "./data/collection.jsonl", lines=True
     ).drop_duplicates(subset=["text"], keep="first")
@@ -29,14 +35,14 @@ def load_sparse():
 
 def load_vector_store(
     embeddings: str,
-) -> Chroma | BM25Retriever:
+) -> Chroma | object:
     """
     embeddings: supports following embeddings to query from: static, dense, minilm
     """
     embedding_options = {
         "static": lambda: Model2vecEmbeddings(model="minishlab/potion-base-8M"),
         "dense": lambda: HuggingFaceEmbeddings(model="BAAI/bge-small-en-v1.5"),
-        "sparse": load_sparse(),
+        "sparse": load_sparse,
         "qwen": lambda: HuggingFaceEmbeddings(model="Qwen/Qwen3-Embedding-0.6B"),
         # "colbert": lambda: HuggingFaceEmbeddings(model="colbert-ir/colbertv2.0"),
     }

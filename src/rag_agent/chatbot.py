@@ -1,9 +1,16 @@
 # File: chatbot.py
 # Description: StreamLit-based chatbot interface for LangGraph RAG system using ChromaDB and Qwen2.5 model
 
+import sys
+from pathlib import Path
+
 import streamlit as st
-from ragtype import Message
-from rag import load_graph
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from rag_agent.ragtype import Message
+from rag_agent.rag import load_graph
 
 
 st.title("LangGraph Chat")

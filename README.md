@@ -38,30 +38,30 @@ conda activate rag
 ## Build Vector Store
 Run the following command to build the vector store from the HQ-small dataset. This process involves loading the dataset, processing it, and storing it in a vector database for efficient retrieval.
 ```bash
-python dataloader.py
+python src/rag_agent/dataloader.py
 ```
 
 ## Run Chatbot
 Execute the following command to start a Streamlit-based chatbot application. After running it, Streamlit will display a local URL (usually http://localhost:8501). Open that URL in your web browser to access and interact with the chatbot app.
 
 ```bash
-streamlit run chatbot.py
+python -m streamlit run src/rag_agent/chatbot.py
 ```
 
 ## Generate Answers in test dataset
 To generate answers for test dataset using the RAG system, run the following command:
 ```bash
-python batch_generate.py -f data/test.jsonl 
+python src/rag_agent/batch_generate.py -f data/test.jsonl 
 ```
 
 ## Run retrieval and generation evaluation
 To evaluate the retrieval and generation performance of the RAG system, you can use the provided evaluation scripts. For retrieval evaluation, run:
 ```bash
-python eval/eval_retrieval.py --gold data/validation.jsonl --pred PREDICTED_FILE
+python src/eval/eval_retrieval.py --gold data/validation.jsonl --pred PREDICTED_FILE
 ``` 
 For generation evaluation, run:
 ```bash
-python eval/eval_hotpotqa.py --gold data/validation.jsonl -k 10 --pred PREDICTED_FILE 
+python src/eval/eval_hotpotqa.py --gold data/validation.jsonl -k 10 --pred PREDICTED_FILE 
 ``` 
 ## 
 
