@@ -7,6 +7,7 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from rag_agent.config import load_agent_config, resolve_project_path
 from rag_agent.rag import load_graph
 import uuid
 import json
@@ -16,9 +17,11 @@ import argparse
 # ===================
 #      Config
 # ===================
-DATA_FILE = "data/validation.jsonl"
-RESULT_DIR = 'results'
-EMBEDDING_TYPE = "dense" 
+CONFIG = load_agent_config()
+BATCH_CONFIG = CONFIG["batch"]
+DATA_FILE = BATCH_CONFIG["data_file"]
+RESULT_DIR = BATCH_CONFIG["result_dir"]
+EMBEDDING_TYPE = BATCH_CONFIG["embedding_type"]
 
 def run_in_batch(data_file: str = DATA_FILE ,embed_type: str = EMBEDDING_TYPE, chain_of_thought: bool = True):
     """
@@ -34,11 +37,12 @@ def run_in_batch(data_file: str = DATA_FILE ,embed_type: str = EMBEDDING_TYPE, c
         Whether to use chain of thought reasoning.
     """
 
-    data_file = Path(data_file)
-    output_file = Path(f"{RESULT_DIR}/{data_file.stem}_{embed_type}.jsonl")
+    data_file = resolve_project_path(data_file)
+    result_dir = resolve_project_path(RESULT_DIR)
+    output_file = result_dir / f"{data_file.stem}_{embed_type}.jsonl"
 
     # create result directory if not exists
-    os.makedirs(RESULT_DIR, exist_ok=True)
+    os.makedirs(result_dir, exist_ok=True)
 
     #
     with open(data_file, "r", encoding="utf-8") as f:

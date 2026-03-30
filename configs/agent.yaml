@@ -1,0 +1,28 @@
+llm:
+  provider: "ollama"
+  name: "qwen2.5:7b-instruct"
+  temperature: 0
+  history_length: 8
+
+data:
+  collection_path: "./data/collection.jsonl"
+
+ui:
+  thread_id: "myrag"
+
+batch:
+  data_file: "data/validation.jsonl"
+  result_dir: "results"
+  embedding_type: "dense"
+
+rag:
+  vector_store:
+    persistence_dir: "./data/chromadb"
+
+  retriever:
+    top_k: 10
+    sparse_top_k: 5
+    embedding:
+      static: "minishlab/potion-base-8M"
+      dense: "BAAI/bge-small-en-v1.5"
+      qwen: "Qwen/Qwen3-Embedding-0.6B"

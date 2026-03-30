@@ -9,8 +9,13 @@ import streamlit as st
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from rag_agent.config import load_agent_config
 from rag_agent.ragtype import Message
 from rag_agent.rag import load_graph
+
+
+CONFIG = load_agent_config()
+THREAD_ID = CONFIG.get("ui", {}).get("thread_id", "myrag")
 
 
 st.title("LangGraph Chat")
@@ -35,7 +40,7 @@ app = st.session_state.langgraph_app
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "config" not in st.session_state:
-    st.session_state.config = {"configurable": {"thread_id": "myrag"}}
+    st.session_state.config = {"configurable": {"thread_id": THREAD_ID}}
 
 
 # record message in frontend side

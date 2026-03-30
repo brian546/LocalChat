@@ -6,6 +6,19 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from .config import load_agent_config, resolve_project_path
+
+
+CONFIG = load_agent_config()
+DATA_CONFIG = CONFIG["data"]
+RAG_CONFIG = CONFIG["rag"]
+RETRIEVER_CONFIG = RAG_CONFIG["retriever"]
+VECTOR_STORE_CONFIG = RAG_CONFIG["vector_store"]
+COLLECTION_PATH = resolve_project_path(DATA_CONFIG["collection_path"])
+PERSIST_DIRECTORY = resolve_project_path(VECTOR_STORE_CONFIG["persistence_dir"])
+EMBEDDING_MODELS = RETRIEVER_CONFIG["embedding"]
+SPARSE_TOP_K = RETRIEVER_CONFIG.get("sparse_top_k", RETRIEVER_CONFIG["top_k"])
+
 
 def load_sparse():
     try:
@@ -15,9 +28,9 @@ def load_sparse():
             "Sparse retrieval requires the 'rank-bm25' package. Install it to use embed='sparse'."
         ) from exc
 
-    collection_split = pd.read_json(
-        "./data/collection.jsonl", lines=True
-    ).drop_duplicates(subset=["text"], keep="first")
+    collection_split = pd.read_json(COLLECTION_PATH, lines=True).drop_duplicates(
+        subset=["text"], keep="first"
+    )
     collection_loader = DataFrameLoader(collection_split, page_content_column="text")
     collection_docs = collection_loader.load()
 
@@ -29,7 +42,7 @@ def load_sparse():
     )
     documents = text_splitter.split_documents(collection_docs)
 
-    bm25_retriever = BM25Retriever.from_documents(documents, k=5)
+    bm25_retriever = BM25Retriever.from_documents(documents, k=SPARSE_TOP_K)
     return bm25_retriever
 
 
@@ -40,10 +53,10 @@ def load_vector_store(
     embeddings: supports following embeddings to query from: static, dense, minilm
     """
     embedding_options = {
-        "static": lambda: Model2vecEmbeddings(model="minishlab/potion-base-8M"),
-        "dense": lambda: HuggingFaceEmbeddings(model="BAAI/bge-small-en-v1.5"),
+        "static": lambda: Model2vecEmbeddings(model=EMBEDDING_MODELS["static"]),
+        "dense": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["dense"]),
         "sparse": load_sparse,
-        "qwen": lambda: HuggingFaceEmbeddings(model="Qwen/Qwen3-Embedding-0.6B"),
+        "qwen": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["qwen"]),
         # "colbert": lambda: HuggingFaceEmbeddings(model="colbert-ir/colbertv2.0"),
     }
 
@@ -52,9 +65,9 @@ def load_vector_store(
         if embeddings == "sparse":
             return embedding_function
         # Load and chunk documents for BM25
-        if os.path.exists("./data/chromadb"):
+        if os.path.exists(PERSIST_DIRECTORY):
             return Chroma(
-                persist_directory="./data/chromadb",
+                persist_directory=str(PERSIST_DIRECTORY),
                 embedding_function=embedding_function,
                 collection_name=f"{embeddings}_collection",
             )

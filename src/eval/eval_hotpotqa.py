@@ -6,6 +6,25 @@ import re
 import string
 import time
 from collections import Counter
+from pathlib import Path
+
+import yaml
+
+
+CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "eval.yaml"
+PROJECT_ROOT = CONFIG_PATH.parent.parent
+
+
+def load_eval_config() -> dict:
+    with CONFIG_PATH.open("r", encoding="utf-8") as config_file:
+        return yaml.safe_load(config_file) or {}
+
+
+def resolve_project_path(path_value: str) -> Path:
+    path = Path(path_value)
+    if path.is_absolute():
+        return path
+    return PROJECT_ROOT / path
 
 
 def read_jsonl(file_path):
@@ -145,13 +164,24 @@ def eval(predictions, gold_data, topk=5):
 
 
 def main():
+    cfg = load_eval_config()
+    defaults_cfg = cfg.get('defaults', {})
+    hotpot_cfg = cfg.get('hotpotqa', {})
+    default_gold = defaults_cfg.get('gold')
+    default_pred = defaults_cfg.get('pred')
+    default_topk = hotpot_cfg.get('topk', 5)
+
     parser = argparse.ArgumentParser(description='Evaluate Hotpot QA results.')
-    parser.add_argument('--gold', '-g', type=str, required=True, help='Path to the gold file.')
-    parser.add_argument('--pred', '-p', type=str, required=True, help='Path to the predicted file.')
-    parser.add_argument('--topk', '-k', type=int, default=5, help='Top k docs in eval.')
+    parser.add_argument('--gold', '-g', type=str, default=default_gold, help='Path to the gold file.')
+    parser.add_argument('--pred', '-p', type=str, default=default_pred, help='Path to the predicted file.')
+    parser.add_argument('--topk', '-k', type=int, default=default_topk, help='Top k docs in eval.')
     args = parser.parse_args()
-    gold_data = read_jsonl(args.gold)
-    pred_data = read_jsonl(args.pred)
+
+    if not args.gold or not args.pred:
+        parser.error('Missing required input files. Provide --gold and --pred, or set defaults in configs/eval.yaml.')
+
+    gold_data = read_jsonl(str(resolve_project_path(args.gold)))
+    pred_data = read_jsonl(str(resolve_project_path(args.pred)))
     assert len(gold_data) == len(pred_data), "Gold and pred files must have the same number of entries."
 
     predictions = {i['id']: i for i in pred_data}

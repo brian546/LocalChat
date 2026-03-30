@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+
 import pandas as pd
 from langchain_community.document_loaders import DataFrameLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -6,15 +9,28 @@ from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 import time
 
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from rag_agent.config import load_agent_config, resolve_project_path
+
+
+CONFIG = load_agent_config()
+DATA_CONFIG = CONFIG["data"]
+RAG_CONFIG = CONFIG["rag"]
+EMBEDDING_MODELS = RAG_CONFIG["retriever"]["embedding"]
+COLLECTION_PATH = resolve_project_path(DATA_CONFIG["collection_path"])
+PERSIST_DIRECTORY = resolve_project_path(RAG_CONFIG["vector_store"]["persistence_dir"])
+
 embedding_options = {
-    "static": lambda: Model2vecEmbeddings(model="minishlab/potion-base-8M"),
-    "dense": lambda: HuggingFaceEmbeddings(model="BAAI/bge-small-en-v1.5"),
-    "qwen": lambda: HuggingFaceEmbeddings(model="Qwen/Qwen3-Embedding-0.6B"),
+    "static": lambda: Model2vecEmbeddings(model=EMBEDDING_MODELS["static"]),
+    "dense": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["dense"]),
+    "qwen": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["qwen"]),
     # "colbert": lambda: HuggingFaceEmbeddings(model="colbert-ir/colbertv2.0"),
 }
 
 print("Loading dataset")
-collection_split = pd.read_json("./data/collection.jsonl", lines=True)
+collection_split = pd.read_json(COLLECTION_PATH, lines=True)
 
 unique_collection_split = collection_split.copy().drop_duplicates(
     subset=["text"], keep="first"
@@ -41,7 +57,7 @@ for each in embedding_options.keys():
     Chroma.from_documents(
         documents=collection_text_splitter,
         embedding=embedding_function,
-        persist_directory="./data/chromadb",
+        persist_directory=str(PERSIST_DIRECTORY),
         collection_name=f"{each}_collection",
     )
 

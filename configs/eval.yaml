@@ -1,0 +1,9 @@
+defaults:
+  gold: data/validation.jsonl
+  pred: results/validation_dense.jsonl
+
+retrieval:
+  k_values: [2, 5, 10]
+
+hotpotqa:
+  topk: 5

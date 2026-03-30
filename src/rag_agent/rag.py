@@ -1,11 +1,8 @@
 # File: rag.py
 # Description: This script provides modules to load LangGraph RAG Workflow with ChromaDB vector store and Ollama Qwen2.5 model
 
-from langchain_chroma import Chroma
-from langchain_community.embeddings import Model2vecEmbeddings
-
-
 from .ragtype import Message, RAGState
+from .config import load_agent_config
 
 # chat model
 from langchain.chat_models import init_chat_model
@@ -20,10 +17,14 @@ from .retriever import load_vector_store
 #           Config
 #===============================
 
-MODEL_NAME = "qwen2.5:7b-instruct"
-PERSIST_DIR=  "./data/chromadb"
-DOC_NUM = 10 # number of documents retrieved rom vector store
-MAX_MEMORY_SIZE = 8 # max number of messages to keep in history
+CONFIG = load_agent_config()
+LLM_CONFIG = CONFIG["llm"]
+RAG_CONFIG = CONFIG["rag"]
+MODEL_NAME = LLM_CONFIG["name"]
+MODEL_PROVIDER = LLM_CONFIG.get("provider", "ollama")
+MODEL_TEMPERATURE = LLM_CONFIG.get("temperature", 0)
+DOC_NUM = RAG_CONFIG["retriever"]["top_k"]
+MAX_MEMORY_SIZE = LLM_CONFIG["history_length"]
 
 
 # %%
@@ -47,8 +48,8 @@ def load_graph(embed: str = "static", chain_of_thought: bool = True) -> StateGra
 
     response_model = init_chat_model(
         model=MODEL_NAME,
-        model_provider="ollama",
-        temperature=0,
+        model_provider=MODEL_PROVIDER,
+        temperature=MODEL_TEMPERATURE,
     )
 
     def rewrite_query(state: RAGState) -> str:
