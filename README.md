@@ -59,62 +59,6 @@ uv sync
 
 All commands below can be run with `uv run ...` so you do not need to manually activate a virtual environment.
 
-## 🐳 Host with Docker
-
-This repository includes a containerized setup for the Streamlit chatbot and Ollama:
-
-- `Dockerfile`: builds the chatbot app image
-- `docker-compose.yml`: runs `chatbot` + `ollama` services
-- `.dockerignore`: reduces build context size
-
-Docker build notes (aligned with uv Docker docs):
-
-- Uses `python:3.12-slim-trixie` base
-- Copies a pinned uv binary from `ghcr.io/astral-sh/uv:0.11.2`
-- Installs dependencies with `uv sync --locked` using `uv.lock` for reproducibility
-
-Start services:
-
-```bash
-docker compose up -d --build
-```
-
-Pull the default LLM inside Ollama (first-time only):
-
-```bash
-docker compose exec ollama ollama pull qwen2.5:7b-instruct
-```
-
-Build/refresh Chroma collections inside the chatbot container:
-
-```bash
-docker compose exec chatbot uv run python src/rag_agent/dataloader.py
-```
-
-Open chatbot UI at `http://localhost:8501`.
-
-Useful operations:
-
-```bash
-# show logs
-docker compose logs -f chatbot
-
-# stop stack
-docker compose down
-```
-
-Persistence notes:
-
-- Ollama models persist in volume `ollama-data`
-- `./data` is mounted into the app container (keeps `data/chromadb` across restarts)
-- `./results` is mounted into the app container for generated outputs
-
-Production notes:
-
-- Keep Ollama internal-only and expose Streamlit behind a reverse proxy (Nginx/Caddy/Traefik)
-- Add TLS and authentication at the proxy layer
-- For GPU acceleration, run on a host with NVIDIA container runtime enabled
-
 ## 🚀 Quickstart
 
 After completing Setup, run these commands from the repository root:
@@ -266,3 +210,59 @@ Typical batch output row:
 - Sparse retrieval requires `rank-bm25` (already included in project dependencies).
 - If Chroma collections are missing, run the dataloader first.
 - `src/api/main.py` is currently empty and not part of the runtime workflow.
+
+## 🐳 Host with Docker
+
+This repository includes a containerized setup for the Streamlit chatbot and Ollama:
+
+- `Dockerfile`: builds the chatbot app image
+- `docker-compose.yml`: runs `chatbot` + `ollama` services
+- `.dockerignore`: reduces build context size
+
+Docker build notes (aligned with uv Docker docs):
+
+- Uses `python:3.12-slim-trixie` base
+- Copies a pinned uv binary from `ghcr.io/astral-sh/uv:0.11.2`
+- Installs dependencies with `uv sync --locked` using `uv.lock` for reproducibility
+
+Start services:
+
+```bash
+docker compose up -d --build
+```
+
+Pull the default LLM inside Ollama (first-time only):
+
+```bash
+docker compose exec ollama ollama pull qwen2.5:7b-instruct
+```
+
+Build/refresh Chroma collections inside the chatbot container:
+
+```bash
+docker compose exec chatbot uv run python src/rag_agent/dataloader.py
+```
+
+Open chatbot UI at `http://localhost:8501`.
+
+Useful operations:
+
+```bash
+# show logs
+docker compose logs -f chatbot
+
+# stop stack
+docker compose down
+```
+
+Persistence notes:
+
+- Ollama models persist in volume `ollama-data`
+- `./data` is mounted into the app container (keeps `data/chromadb` across restarts)
+- `./results` is mounted into the app container for generated outputs
+
+Production notes:
+
+- Keep Ollama internal-only and expose Streamlit behind a reverse proxy (Nginx/Caddy/Traefik)
+- Add TLS and authentication at the proxy layer
+- For GPU acceleration, run on a host with NVIDIA container runtime enabled
