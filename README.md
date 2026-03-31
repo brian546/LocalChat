@@ -183,10 +183,6 @@ qwenRAG/
         └── eval_hotpotqa.py
 ```
 
-## 📝 Notes
-
-- sparse retrieval depends on `rank-bm25` (already in project dependencies)
-- `src/api/main.py` is currently empty and not part of the runtime flow
 
 ## 🙋 Need Help?
 
