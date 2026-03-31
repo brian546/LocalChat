@@ -1,6 +1,6 @@
 # 🤖 QwenRAG
 
-Build a local RAG chatbot with LangGraph + Ollama. No API keys required. It also can show you the documents related to your query and its chain-of-thought reasoning process.
+Built a fully local RAG chatbot using LangGraph + Ollama, powered by the HotpotQA dataset. No API keys required. It can retrieve and display the relevant documents and clearly show its chain-of-thought reasoning process.
 
 ### ✨ What you can do with this project
 
