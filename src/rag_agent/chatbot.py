@@ -18,13 +18,13 @@ CONFIG = load_agent_config()
 THREAD_ID = CONFIG.get("ui", {}).get("thread_id", "myrag")
 
 
-st.title("LangGraph Chat")
+# st.title("Chat with your bot")
 
 # select retrieval strategy
 # Default: static embeddings
 retrieval_strategy = st.selectbox(
     "Retrieval strategy",
-    options=["static", "sparse", "dense","qwen"],
+    options=["sparse", "static", "dense"],
     index=0,
     help="Select the embedding model for vector store retrieval. The chatbot will be reloaded when the model is changed.")
 
@@ -53,7 +53,7 @@ for message in st.session_state.messages:
             st.write(message["content"])
 
 # Chat input
-if prompt := st.chat_input("Ask the LangGraph agent..."):
+if prompt := st.chat_input("Ask the bot..."):
     # Add user message
     st.session_state.messages.append(Message(role="user", content=prompt))
     with st.chat_message("user"):

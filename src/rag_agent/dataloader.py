@@ -25,7 +25,7 @@ PERSIST_DIRECTORY = resolve_project_path(RAG_CONFIG["vector_store"]["persistence
 embedding_options = {
     "static": lambda: Model2vecEmbeddings(model=EMBEDDING_MODELS["static"]),
     "dense": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["dense"]),
-    "qwen": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["qwen"]),
+    # "qwen": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["qwen"]),
     # "colbert": lambda: HuggingFaceEmbeddings(model="colbert-ir/colbertv2.0"),
 }
 

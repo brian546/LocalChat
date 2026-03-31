@@ -1,154 +1,83 @@
 # 🤖 QwenRAG
 
-QwenRAG is a retrieval-augmented generation project built around LangGraph and Ollama. It supports multiple retrieval strategies (static, dense, sparse BM25, and Qwen embeddings), provides a Streamlit chatbot UI, and includes batch generation plus retrieval and QA evaluation scripts.
+Build a local RAG chatbot with LangGraph + Ollama. No API keys required. It also can show you the documents related to your query and its chain-of-thought reasoning process.
 
-## 📁 What is in this repo
+### ✨ What you can do with this project
 
-```text
-qwenRAG/
-├── configs/
-│   ├── agent.yaml
-│   └── eval.yaml
-├── data/
-├── results/
-└── src/
-    ├── rag_agent/
-  │   ├── rag.py
-  │   ├── retriever.py
-  │   ├── dataloader.py
-  │   ├── chatbot.py
-  │   └── batch_generate.py
-    └── eval/
-    ├── eval_retrieval.py
-    └── eval_hotpotqa.py
-```
+- Chat with a local assistant using multiple retrieval modes (`static`, `dense`, `sparse`, `qwen`)
+- See which documents were retrieved in the Streamlit UI
+- Optionally run batch prediction and evaluation scripts
 
-Key paths:
-
-- `configs/agent.yaml`: central runtime configuration (model, retriever, paths, defaults)
-- `configs/eval.yaml`: evaluation defaults (gold/pred paths, retrieval cutoffs, top-k)
-- `data/`: collection and QA datasets
-- `results/`: batch outputs and score files
-- `src/rag_agent/rag.py`: LangGraph workflow for rewrite, retrieval, and answer generation
-- `src/rag_agent/retriever.py`: Chroma (static/dense/qwen) and BM25 sparse retriever loader
-- `src/rag_agent/dataloader.py`: builds Chroma collections from `data/collection.jsonl`
-- `src/rag_agent/chatbot.py`: Streamlit chatbot frontend
-- `src/rag_agent/batch_generate.py`: batch inference over JSONL question files
-- `src/eval/eval_retrieval.py`: retrieval metrics via pytrec_eval
-- `src/eval/eval_hotpotqa.py`: Hotpot-style answer/supporting-fact evaluation
-
-## ✅ Requirements
+## 🧰 Requirements
 
 - Python 3.12+
-- [uv](https://docs.astral.sh/uv/) for dependency sync
-- [Ollama](https://ollama.com/) with local model pulled
+- [uv](https://docs.astral.sh/uv/)
+- [Ollama](https://ollama.com/)
 
-## ⚙️ Setup
+## 🚀 Quick Start (Chatbot)
 
-Pull the default model used by `configs/agent.yaml`:
+Pick one path and run commands from the repository root.
 
-```bash
-ollama pull qwen2.5:7b-instruct
-```
+### 🖥️ Local (recommended)
 
-Install project dependencies:
+This is the easiest way for first-time users.
 
 ```bash
 uv sync
-```
-
-All commands below can be run with `uv run ...` so you do not need to manually activate a virtual environment.
-
-## 🚀 Quickstart
-
-After completing Setup, run these commands from the repository root:
-
-```bash
-# 1) 🗂️ Build/refresh Chroma collections (static, dense, qwen)
+ollama pull qwen2.5:7b-instruct
 uv run python src/rag_agent/dataloader.py
-
-# 2) 🧠 Generate validation predictions with dense retrieval
-uv run python src/rag_agent/batch_generate.py -f data/validation.jsonl -e dense
-
-# 3) 📊 Evaluate retrieval quality (uses defaults from configs/eval.yaml)
-uv run python src/eval/eval_retrieval.py
-
-# 4) 🧪 Evaluate QA quality and supporting docs (uses defaults from configs/eval.yaml)
-uv run python src/eval/eval_hotpotqa.py
-```
-
-Optional: launch the chatbot UI after indexing:
-
-```bash
 uv run streamlit run src/rag_agent/chatbot.py
 ```
 
-## 🧩 Configuration
+Open `http://localhost:8501`.
 
-Main runtime config is in `configs/agent.yaml`:
+Notes:
 
-- `llm`: provider/model/temperature/history settings
-- `data.collection_path`: input corpus JSONL
-- `rag.vector_store.persistence_dir`: Chroma persistence directory
-- `rag.retriever.embedding`: model names for static/dense/qwen
-- `batch`: default dataset, output dir, and embedding type
+- Run `src/rag_agent/dataloader.py` on first setup, or whenever `data/collection.jsonl` changes.
+- You do not need to activate a virtual environment manually.
 
-Evaluation defaults are in `configs/eval.yaml`:
+### 🐳 Docker Compose
 
-- `defaults.gold` / `defaults.pred`: default input/output files used by eval scripts
-- `retrieval.k_values`: cutoffs for MAP/NDCG/Recall/Precision in retrieval eval
-- `hotpotqa.topk`: number of retrieved docs considered in Hotpot-style eval
-
-Default retrieval strategies available at runtime:
-
-- `static`
-- `dense`
-- `sparse`
-- `qwen`
-
-## 🗂️ Build or refresh vector stores
-
-Generate Chroma collections for static, dense, and qwen embeddings:
+Use this if you prefer containerized setup.
 
 ```bash
-uv run python src/rag_agent/dataloader.py
+docker compose up -d --build
+docker compose exec ollama ollama pull qwen2.5:7b-instruct
+docker compose exec chatbot uv run python src/rag_agent/dataloader.py
 ```
 
-This reads `data/collection.jsonl` and writes to `data/chromadb/`.
+Open `http://localhost:8501`.
 
-## 💬 Run chatbot UI
+## 🖼️ Chatbot UI Preview
 
-```bash
-uv run streamlit run src/rag_agent/chatbot.py
-```
 
-In the UI, select retrieval strategy (`static`, `sparse`, `dense`, `qwen`) from the dropdown.
+![QwenRAG Chatbot UI](image.png)
 
-## 🏭 Run batch generation
+## 🌟 Optional Workflows
 
-Generate answers for a dataset:
+These are not required to run the chatbot.
+
+### 🏭 Batch generation
 
 ```bash
 uv run python src/rag_agent/batch_generate.py -f data/test.jsonl -e dense
 ```
 
-Useful options:
+Options:
 
-- `-f, --file`: input JSONL file with at least `id` and `text`
+- `-f, --file`: input JSONL with at least `id` and `text`
 - `-e, --embed`: retrieval mode (`static`, `dense`, `sparse`, `qwen`)
-- `-s, --skip_chain`: disable chain-of-thought node and answer directly from retrieved context
+- `-s, --skip_chain`: skip chain node and answer directly from retrieved context
 
-Output is written to `results/<input_stem>_<embed>.jsonl`.
+Output: `results/<input_stem>_<embed>.jsonl`
 
-## 📊 Evaluate retrieval
-
-Default command (uses `configs/eval.yaml`):
+### 📊 Evaluate retrieval
 
 ```bash
 uv run python src/eval/eval_retrieval.py
 ```
 
-Optional overrides:
+Override defaults if needed:
 
 ```bash
 uv run python src/eval/eval_retrieval.py \
@@ -157,17 +86,15 @@ uv run python src/eval/eval_retrieval.py \
   --k_values 2 5 10
 ```
 
-The script reports MAP, NDCG, Recall, and Precision at cutoffs 2/5/10.
+Metrics reported: MAP, NDCG, Recall, Precision.
 
-## 🧪 Evaluate QA + supporting docs
-
-Default command (uses `configs/eval.yaml`):
+### 🧪 Evaluate QA + supporting docs
 
 ```bash
 uv run python src/eval/eval_hotpotqa.py
 ```
 
-Optional overrides:
+Override defaults if needed:
 
 ```bash
 uv run python src/eval/eval_hotpotqa.py \
@@ -176,11 +103,41 @@ uv run python src/eval/eval_hotpotqa.py \
   --topk 10
 ```
 
-This reports EM/F1 for answers, supporting-doc metrics, and joint metrics.
+Metrics reported: answer EM/F1, supporting-doc metrics, and joint metrics.
 
-## 🧾 Input and output JSONL format
+## ⚙️ Configuration
 
-Typical input row (`data/validation.jsonl`):
+Runtime config: `configs/agent.yaml`
+
+- `llm`: model and generation settings
+- `data.collection_path`: source corpus JSONL
+- `rag.vector_store.persistence_dir`: Chroma persistence path
+- `rag.retriever.embedding`: embedding models for retrieval modes
+- `batch`: default dataset, output directory, embedding type
+
+Evaluation config: `configs/eval.yaml`
+
+- `defaults.gold` / `defaults.pred`: default files used by eval scripts
+- `retrieval.k_values`: retrieval metric cutoffs
+- `hotpotqa.topk`: number of retrieved docs considered in QA eval
+
+## 🐳 Docker Notes
+
+- `Dockerfile` builds the chatbot image
+- `docker-compose.yml` runs `chatbot` + `ollama`
+- `ollama-data` volume persists pulled Ollama models
+- `./data` and `./results` are mounted into the chatbot container
+
+Useful commands:
+
+```bash
+docker compose logs -f chatbot
+docker compose down
+```
+
+## 🧾 Data Format
+
+Typical input row (for example, `data/validation.jsonl`):
 
 ```json
 {
@@ -205,64 +162,34 @@ Typical batch output row:
 }
 ```
 
+## 🗂️ Project Layout
+
+```text
+qwenRAG/
+├── configs/
+│   ├── agent.yaml
+│   └── eval.yaml
+├── data/
+├── results/
+└── src/
+    ├── rag_agent/
+    │   ├── chatbot.py
+    │   ├── dataloader.py
+    │   ├── retriever.py
+    │   ├── rag.py
+    │   └── batch_generate.py
+    └── eval/
+        ├── eval_retrieval.py
+        └── eval_hotpotqa.py
+```
+
 ## 📝 Notes
 
-- Sparse retrieval requires `rank-bm25` (already included in project dependencies).
-- If Chroma collections are missing, run the dataloader first.
-- `src/api/main.py` is currently empty and not part of the runtime workflow.
+- sparse retrieval depends on `rank-bm25` (already in project dependencies)
+- `src/api/main.py` is currently empty and not part of the runtime flow
 
-## 🐳 Host with Docker
+## 🙋 Need Help?
 
-This repository includes a containerized setup for the Streamlit chatbot and Ollama:
-
-- `Dockerfile`: builds the chatbot app image
-- `docker-compose.yml`: runs `chatbot` + `ollama` services
-- `.dockerignore`: reduces build context size
-
-Docker build notes (aligned with uv Docker docs):
-
-- Uses `python:3.12-slim-trixie` base
-- Copies a pinned uv binary from `ghcr.io/astral-sh/uv:0.11.2`
-- Installs dependencies with `uv sync --locked` using `uv.lock` for reproducibility
-
-Start services:
-
-```bash
-docker compose up -d --build
-```
-
-Pull the default LLM inside Ollama (first-time only):
-
-```bash
-docker compose exec ollama ollama pull qwen2.5:7b-instruct
-```
-
-Build/refresh Chroma collections inside the chatbot container:
-
-```bash
-docker compose exec chatbot uv run python src/rag_agent/dataloader.py
-```
-
-Open chatbot UI at `http://localhost:8501`.
-
-Useful operations:
-
-```bash
-# show logs
-docker compose logs -f chatbot
-
-# stop stack
-docker compose down
-```
-
-Persistence notes:
-
-- Ollama models persist in volume `ollama-data`
-- `./data` is mounted into the app container (keeps `data/chromadb` across restarts)
-- `./results` is mounted into the app container for generated outputs
-
-Production notes:
-
-- Keep Ollama internal-only and expose Streamlit behind a reverse proxy (Nginx/Caddy/Traefik)
-- Add TLS and authentication at the proxy layer
-- For GPU acceleration, run on a host with NVIDIA container runtime enabled
+- If the chatbot starts but answers look empty, run the dataloader again.
+- If Ollama model is missing, run `ollama pull qwen2.5:7b-instruct`.
+- If Docker is running but UI is unavailable, check logs with `docker compose logs -f chatbot`.

@@ -53,10 +53,10 @@ def load_vector_store(
     embeddings: supports following embeddings to query from: static, dense, minilm
     """
     embedding_options = {
+        "sparse": load_sparse,
         "static": lambda: Model2vecEmbeddings(model=EMBEDDING_MODELS["static"]),
         "dense": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["dense"]),
-        "sparse": load_sparse,
-        "qwen": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["qwen"]),
+        # "qwen": lambda: HuggingFaceEmbeddings(model=EMBEDDING_MODELS["qwen"]),
         # "colbert": lambda: HuggingFaceEmbeddings(model="colbert-ir/colbertv2.0"),
     }
 
