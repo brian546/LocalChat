@@ -16,23 +16,38 @@ from rag_agent.rag import load_graph
 
 CONFIG = load_agent_config()
 THREAD_ID = CONFIG.get("ui", {}).get("thread_id", "myrag")
+RETRIEVAL_OPTIONS = ["sparse", "static", "dense"]
+DEFAULT_RETRIEVAL = "static"
 
 
 # st.title("Chat with your bot")
 
 # select retrieval strategy
-# Default: static embeddings
+# Persist strategy in URL so browser refresh keeps the same selection.
+query_strategy = st.query_params.get("retrieval", DEFAULT_RETRIEVAL)
+if query_strategy not in RETRIEVAL_OPTIONS:
+    query_strategy = DEFAULT_RETRIEVAL
+
 retrieval_strategy = st.selectbox(
     "Retrieval strategy",
-    options=["sparse", "static", "dense"],
-    index=0,
-    help="Select the embedding model for vector store retrieval. The chatbot will be reloaded when the model is changed.")
+    options=RETRIEVAL_OPTIONS,
+    index=RETRIEVAL_OPTIONS.index(query_strategy),
+    help=(
+        "Choose how documents are retrieved:\n"
+        "- sparse: BM25 keyword search (no vector embeddings)\n"
+        "- static: lightweight static embedding model (fast, lower quality)\n"
+        "- dense: BGE dense embedding model (best semantic matching, slower)"
+    ),
+)
+
+if st.query_params.get("retrieval") != retrieval_strategy:
+    st.query_params["retrieval"] = retrieval_strategy
 
 # only load the graph once
-if "langgraph_app" not in st.session_state or st.session_state.retrieval_strategy != retrieval_strategy:
-    st.session_state.retrieval_strategy = retrieval_strategy
+if "langgraph_app" not in st.session_state or st.session_state.get("active_retrieval_strategy") != retrieval_strategy:
+    st.session_state.active_retrieval_strategy = retrieval_strategy
     st.session_state.messages = [] # clear the chat history
-    st.session_state.langgraph_app = load_graph(st.session_state.retrieval_strategy) # reload the graph with defined retrieval strategy
+    st.session_state.langgraph_app = load_graph(st.session_state.active_retrieval_strategy) # reload the graph with defined retrieval strategy
 
 app = st.session_state.langgraph_app
 
