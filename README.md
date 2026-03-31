@@ -51,7 +51,7 @@ Open `http://localhost:8501`.
 ## 🖼️ Chatbot UI Preview
 
 
-![QwenRAG Chatbot UI](image.png)
+<img src="image.png" alt="QwenRAG Chatbot UI" style="width: 100%; max-width: 700px; height: auto; margin: 0 auto" />
 
 ## 🌟 Optional Workflows
 
