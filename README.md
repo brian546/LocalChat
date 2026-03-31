@@ -4,7 +4,7 @@ Build a local RAG chatbot with LangGraph + Ollama. No API keys required. It also
 
 ### ✨ What you can do with this project
 
-- Chat with a local assistant using multiple retrieval modes (`static`, `dense`, `sparse`, `qwen`)
+- Chat with a local assistant using multiple retrieval modes (`sparse`, `static`, `dense`)
 - See which documents were retrieved in the Streamlit UI
 - Optionally run batch prediction and evaluation scripts
 
