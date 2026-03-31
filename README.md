@@ -189,3 +189,7 @@ qwenRAG/
 - If the chatbot starts but answers look empty, run the dataloader again.
 - If Ollama model is missing, run `ollama pull qwen2.5:7b-instruct`.
 - If Docker is running but UI is unavailable, check logs with `docker compose logs -f chatbot`.
+
+## ⭐ Support This Project
+
+If this project helps you, please give it a ⭐ on GitHub. It helps more people discover and try QwenRAG.
