@@ -192,4 +192,4 @@ qwenRAG/
 
 ## ⭐ Support This Project
 
-If this project helps you, please give it a ⭐ on GitHub. It helps more people discover and try QwenRAG.
+If you like this project, give it a ⭐ on GitHub.
